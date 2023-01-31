@@ -26,37 +26,37 @@
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(360deg); }
             }
-
-            
-            #ui {
-                position: absolute;
-                top: 20px;
-                left: 50%;
-            }
         </style>
+
+        <script type="importmap">
+            {
+                "imports": {
+                "three/examples/jsm/controls/OrbitControls":"./jsm/controls/OrbitControls.js",
+                "three/examples/jsm/libs/stats.module":"./jsm/libs/stats.module.js"
+                
+                "three": "https://unpkg.com/three@0.147.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.147.0/examples/jsm/",
+                "rhino3dm": "https://unpkg.com/rhino3dm@0.15.0-beta/rhino3dm.module.js",
+                "rhinocompute": "https://cdn.jsdelivr.net/npm/compute-rhino3d@0.13.0-beta/compute.rhino3d.module.js"
+                }
+            }
+        </script>
+
+        
+
     </head>
     <body>
         <div id="loader"></div> 
         <div id="container">
             <div id="overlay">
-
-                <div id="ui">
-                    <button id="downloadButton" onclick="download()" disabled>Download</button>
+                <div>
+                    <input type="range" id="count" name="count" min="0" max="1" value="0.5" step="0.01">
+                    <label for="count">Count</label>
                 </div>
 
 
             </div>
         </div>
-        <script type="importmap">
-			{
-				"imports": {
-				  "three": "https://unpkg.com/three@0.147.0/build/three.module.js",
-				  "three/addons/": "https://unpkg.com/three@0.147.0/examples/jsm/",
-                  "rhino3dm": "https://unpkg.com/rhino3dm@0.15.0-beta/rhino3dm.module.js",
-                  "rhinocompute": "https://cdn.jsdelivr.net/npm/compute-rhino3d@0.13.0-beta/compute.rhino3d.module.js"
-				}
-			  }
-		  </script>
         <script type="module" src="script.js"></script>
     </body>
 </html>

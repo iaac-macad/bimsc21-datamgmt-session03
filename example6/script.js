@@ -5,12 +5,9 @@ import { Rhino3dmLoader } from 'three/addons/loaders/3DMLoader.js'
 import rhino3dm from 'rhino3dm'
 import { RhinoCompute } from 'rhinocompute'
 
-const definitionName = "rnd_node.gh";
+const definitionName = "plane.gh";
+const model = 'world.3dm'
 
-// Set up sliders
-const radius_slider = document.getElementById("radius");
-radius_slider.addEventListener("mouseup", onSliderChange, false);
-radius_slider.addEventListener("touchend", onSliderChange, false);
 
 const count_slider = document.getElementById("count");
 count_slider.addEventListener("mouseup", onSliderChange, false);
@@ -40,16 +37,14 @@ rhino3dm().then(async (m) => {
 });
 
 async function compute() {
-  const param1 = new RhinoCompute.Grasshopper.DataTree("Radius");
-  param1.append([0], [radius_slider.valueAsNumber]);
 
-  const param2 = new RhinoCompute.Grasshopper.DataTree("Count");
-  param2.append([0], [count_slider.valueAsNumber]);
+  const param1= new RhinoCompute.Grasshopper.DataTree("fly");
+  console.log(count_slider.valueAsNumber)
+  param1.append([0], [count_slider.valueAsNumber]);
 
   // clear values
   const trees = [];
   trees.push(param1);
-  trees.push(param2);
 
   const res = await RhinoCompute.Grasshopper.evaluateDefinition(
     definition,
@@ -59,11 +54,17 @@ async function compute() {
 
   //console.log(res);
 
-  doc = new rhino.File3dm();
+  // doc = new rhino.File3dm;
+  //const url = model
+  //const res1 = await fetch(url)
+  //const buffer1 = await res1.arrayBuffer()
+  //doc = rhino.File3dm.fromByteArray(new Uint8Array(buffer1))
 
   // hide spinner
   document.getElementById("loader").style.display = "none";
 
+
+ doc = new rhino.File3dm;
   //decode grasshopper objects and put them into a rhino document
   for (let i = 0; i < res.values.length; i++) {
     for (const [key, value] of Object.entries(res.values[i].InnerTree)) {
@@ -76,11 +77,12 @@ async function compute() {
   }
 
 
+
   // clear objects from scene
   scene.traverse((child) => {
-    if (!child.isLight) {
-      scene.remove(child);
-    }
+    console.log(child)
+    if(!child.isLight && child.hasOwnProperty("keep") && child !== undefined) scene.remove(child)
+
   });
 
   const buffer = new Uint8Array(doc.toByteArray()).buffer;
@@ -89,20 +91,7 @@ async function compute() {
     // go through all objects, check for userstrings and assing colors
 
     object.traverse((child) => {
-      if (child.isLine) {
-
-        if (child.userData.attributes.geometry.userStringCount > 0) {
-          
-          //get color from userStrings
-          const colorData = child.userData.attributes.geometry.userStrings[0]
-          const col = colorData[1];
-
-          //convert color from userstring to THREE color and assign it
-          const threeColor = new THREE.Color("rgb(" + col + ")");
-          const mat = new THREE.LineBasicMaterial({ color: threeColor });
-          child.material = mat;
-        }
-      }
+      child.keep = false
       
     });
 
@@ -115,7 +104,7 @@ async function compute() {
 
 function onSliderChange() {
   // show spinner
-  document.getElementById("loader").style.display = "block";
+  //document.getElementById("loader").style.display = "block";
   compute();
 }
 
@@ -124,6 +113,9 @@ function onSliderChange() {
 let scene, camera, renderer, controls;
 
 function init() {
+
+
+
   // create a scene and a camera
   scene = new THREE.Scene();
   scene.background = new THREE.Color(1, 1, 1);
@@ -150,6 +142,33 @@ function init() {
 
   const ambientLight = new THREE.AmbientLight();
   scene.add(ambientLight);
+
+
+
+  // load the model
+  const loader = new Rhino3dmLoader()
+  loader.setLibraryPath( 'https://cdn.jsdelivr.net/npm/rhino3dm@0.13.0/' )
+
+  loader.load( model, function ( object ) {
+
+      // uncomment to hide spinner when model loads
+      // document.getElementById('loader').remove()
+      scene.add( object )
+      scene.traverse((child, i) => {
+        //if (object.userData.attributes !== undefined) 
+        if (child.type === "Mesh" && child.userData.attributes.userStringCount > 0){
+       
+          // get user strings
+          let data, count
+          data = child.userData.attributes.userStrings[0]
+          if (data[0] == "world") child.material.color.set( 'blue' )
+          if (data[0] == "geo") child.material.color.set( 'green' )
+          
+          //console.log(child)
+        }
+    });
+
+  } )
 
   animate();
 }
